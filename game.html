@@ -1,0 +1,971 @@
+<title>Little Pizzaiolo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap">
+<style>
+/* Layout: one-screen pizzeria kitchen. The pizza on the wooden counter is the hero; the tool tray sits under it (portrait) or beside it (landscape). Single warm look, no dark variant. */
+:root{
+  --navy:#1d2756; --navy-2:#34428a;
+  --cream:#fff8ea; --wall:#f4e6cb; --tile:#ead7b4;
+  --tomato:#d23b2a; --tomato-d:#9e2617;
+  --basil:#3b8a3e; --basil-d:#25632a;
+  --wood:#c18249; --wood-d:#8d5427;
+  --gold:#f3b52f; --gold-d:#c98a10;
+  --ink:#2b1d12; --ink-soft:#6b5643;
+  --display:"Lilita One","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito",ui-rounded,"Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+}
+html{box-sizing:border-box;height:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{height:100%;margin:0;background:var(--wall);color:var(--ink);font-family:var(--body);font-weight:600;font-size:16px;overflow:hidden;
+  touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  background-image:linear-gradient(var(--tile) 2px,transparent 2px),linear-gradient(90deg,var(--tile) 2px,transparent 2px);background-size:56px 56px}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+button:focus-visible{outline:4px solid var(--navy-2);outline-offset:3px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;letter-spacing:.01em}
+p{margin:0}
+
+#app{position:relative;height:100%;max-width:1180px;margin:0 auto;display:grid;grid-template-rows:auto minmax(0,1fr);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+.bar{display:flex;align-items:center;gap:10px;padding-block:10px}
+.icon-btn{width:48px;height:48px;border-radius:50%;background:var(--navy);color:var(--cream);display:grid;place-items:center;box-shadow:0 4px 0 #0f1638;flex:none}
+.icon-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #0f1638}
+.icon-btn svg{width:26px;height:26px}
+.hud{flex:1;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;min-width:0}
+.pill{display:inline-flex;align-items:center;gap:6px;background:var(--cream);border:3px solid var(--navy);border-radius:999px;padding:4px 12px;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill svg{width:20px;height:20px}
+.pill.clock{background:var(--navy);color:var(--cream);font-size:20px}
+.pill.clock.low{background:var(--tomato);border-color:var(--tomato-d)}
+
+.screen{min-height:0;height:100%;position:relative}
+
+/* ---------- title ---------- */
+#title{overflow-y:auto;padding-bottom:20px}
+.awning{height:30px;border-radius:0 0 8px 8px;background:repeating-linear-gradient(90deg,var(--tomato) 0 34px,var(--cream) 34px 68px);
+  position:relative}
+.awning::after{content:"";position:absolute;left:0;right:0;bottom:-12px;height:12px;
+  background:radial-gradient(circle at 17px 0,var(--tomato) 16px,transparent 17px) 0 0/68px 12px repeat-x,radial-gradient(circle at 51px 0,var(--cream) 16px,transparent 17px) 0 0/68px 12px repeat-x}
+.title-wrap{max-width:860px;margin:0 auto;display:grid;gap:22px;padding-top:26px}
+.title-hero{display:flex;align-items:center;gap:18px;justify-content:center;flex-wrap:wrap}
+.host-big{width:150px;flex:none;filter:drop-shadow(0 6px 0 rgba(43,29,18,.12))}
+.sign{background:var(--navy);color:var(--cream);border-radius:22px;padding:18px 26px 20px;text-align:center;box-shadow:0 7px 0 #0f1638;max-width:520px;
+  border:4px solid var(--cream);outline:4px solid var(--navy)}
+.sign-small{text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:900;opacity:.85}
+.sign h1{font-size:clamp(40px,8vw,66px);line-height:1;margin-block:6px;color:var(--gold)}
+.sign-sub{font-size:17px;font-weight:800}
+.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:640px){.modes{grid-template-columns:1fr}}
+.mode{background:var(--cream);border:4px solid var(--navy);border-radius:24px;padding:16px;display:grid;grid-template-columns:72px 1fr;grid-template-rows:auto auto 1fr;column-gap:14px;text-align:left;
+  box-shadow:0 6px 0 var(--navy);transition:transform .12s}
+.mode:hover{transform:translateY(-2px)}
+.mode:active{transform:translateY(4px);box-shadow:0 2px 0 var(--navy)}
+.mode-ic{grid-row:1/4;width:72px;height:72px}
+.mode-name{font-family:var(--display);font-size:24px;color:var(--navy);line-height:1.05}
+.mode-it{font-style:italic;color:var(--tomato);font-weight:900;font-size:15px}
+.mode-desc{color:var(--ink-soft);font-size:15px;margin-top:4px}
+.title-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center}
+.link-btn{font-weight:900;color:var(--navy);text-decoration:underline;text-underline-offset:3px;padding:10px 8px;min-height:44px}
+.chip-btn{background:var(--gold);border:3px solid var(--gold-d);border-radius:999px;padding:8px 16px;font-weight:900;box-shadow:0 4px 0 var(--gold-d);min-height:44px}
+.chip-btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--gold-d)}
+
+/* ---------- kitchen ---------- */
+#kitchen{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;padding-bottom:12px}
+.k-top{display:flex;gap:10px;align-items:stretch;min-width:0}
+.host{flex:1;display:flex;gap:8px;align-items:center;min-width:0}
+.host-face{width:62px;height:62px;flex:none}
+.host-text{background:var(--cream);border:3px solid var(--navy);border-radius:18px;padding:8px 12px;font-weight:800;font-size:15px;line-height:1.25;position:relative;min-width:0}
+.host-text::before{content:"";position:absolute;left:-11px;top:50%;margin-top:-8px;border:8px solid transparent;border-right-color:var(--navy);border-left:0}
+.host-text b{color:var(--tomato);font-style:italic}
+.cust{display:flex;gap:8px;align-items:center;flex:none}
+.cust[hidden]{display:none!important}
+.cust-who{display:grid;justify-items:center;width:70px}
+.cust-face{width:64px;height:64px}
+.cust-name{font-size:12px;font-weight:900;color:var(--navy);white-space:nowrap}
+.order{background:#fff;border:3px solid var(--navy);border-radius:16px;padding:6px 8px;display:grid;gap:3px;position:relative;min-width:64px}
+.order::before{content:"";position:absolute;left:-11px;top:24px;border:8px solid transparent;border-right-color:var(--navy);border-left:0}
+.ord-row{display:flex;gap:1px;align-items:center;border-radius:8px;padding:1px 3px;transition:background .2s}
+.ord-row svg{width:28px;height:28px}
+.ord-row.done{background:#dcefd6}
+.ord-row .tick{width:18px;height:18px;margin-left:2px;opacity:0}
+.ord-row.done .tick{opacity:1}
+@media (max-width:480px){
+  .host-face{width:44px;height:44px}
+  .host-text{font-size:14px;padding:6px 10px}
+  .cust-who{width:52px}.cust-face{width:48px;height:48px}
+  .ord-row svg{width:24px;height:24px}
+}
+.cust.arrive{animation:arrive .5s cubic-bezier(.3,1.4,.6,1)}
+@keyframes arrive{from{transform:translateX(120px);opacity:0}}
+
+.k-stage{position:relative;min-height:0;border-radius:26px;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 40%,#d39a60,#a8692f 70%,#8a5223);box-shadow:inset 0 0 0 4px rgba(0,0,0,.08)}
+.k-stage::before{content:"";position:absolute;inset:0;opacity:.25;
+  background:repeating-linear-gradient(0deg,transparent 0 22px,rgba(80,40,10,.35) 22px 24px)}
+#pizza{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:pointer}
+.pop{animation:pop .35s cubic-bezier(.3,1.6,.5,1) both;transform-box:fill-box;transform-origin:center}
+@keyframes pop{from{transform:scale(1.9);opacity:0}}
+.hint-ring{fill:none;stroke:#fff;stroke-width:5;stroke-dasharray:14 12;opacity:.9;animation:spin 6s linear infinite,pulse 1.2s ease-in-out infinite alternate;transform-box:view-box;transform-origin:200px 200px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{to{opacity:.35}}
+.slice-line{stroke:rgba(90,45,15,.45);stroke-width:4;stroke-linecap:round;stroke-dasharray:200;stroke-dashoffset:200;animation:cut .5s ease-out forwards}
+@keyframes cut{to{stroke-dashoffset:0}}
+
+/* oven overlay */
+#oven{position:absolute;inset:0;background:#e9d4b0;opacity:0;transition:opacity .35s}
+#oven.show{opacity:1}
+#oven svg{width:100%;height:100%}
+.flame{transform-box:fill-box;transform-origin:50% 100%;animation:flick .35s ease-in-out infinite alternate}
+.flame.f2{animation-duration:.45s;animation-delay:-.2s}
+.flame.f3{animation-duration:.3s;animation-delay:-.1s}
+@keyframes flick{to{transform:scale(1.08,.82)}}
+.oven-count{font-family:var(--display);font-size:40px;fill:var(--navy)}
+
+/* star pop + confetti */
+.starpop{position:absolute;left:0;right:0;top:12px;display:flex;justify-content:center;gap:8px;pointer-events:none}
+.starpop svg{width:clamp(44px,12vw,70px);height:auto;animation:starin .5s cubic-bezier(.3,1.7,.5,1) both;filter:drop-shadow(0 4px 0 rgba(0,0,0,.18))}
+@keyframes starin{from{transform:scale(0) rotate(-90deg)}}
+.conf{position:absolute;top:-20px;width:12px;height:16px;border-radius:3px;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translate(var(--dx),110vh) rotate(var(--rot))}}
+
+/* tray */
+.k-tray{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;min-height:88px;min-width:0}
+.bins{display:flex;gap:8px;overflow-x:auto;max-width:100%;padding:4px 2px 8px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.bin{flex:none;width:78px;min-height:88px;border-radius:18px;background:var(--cream);border:3px solid var(--wood-d);display:grid;justify-items:center;align-content:center;gap:2px;padding:6px 2px;box-shadow:0 4px 0 var(--wood-d);scroll-snap-align:start;position:relative}
+.bin svg{width:44px;height:44px}
+.bin .it{font-weight:900;font-size:13px;color:var(--tomato-d);font-style:italic;line-height:1}
+.bin .en{font-size:11px;color:var(--ink-soft);line-height:1.1;text-align:center}
+.bin.sel{border-color:var(--basil);background:#e7f4e0;box-shadow:0 4px 0 var(--basil-d);transform:translateY(-3px)}
+.bin:active{transform:translateY(3px);box-shadow:0 1px 0 var(--wood-d)}
+.bin.locked{opacity:.55;filter:grayscale(.8)}
+.bin .lock{position:absolute;inset:auto 4px 4px auto;background:var(--navy);color:var(--cream);border-radius:999px;font-size:11px;font-weight:900;padding:1px 6px}
+.big{min-height:64px;padding:0 24px;border-radius:999px;font-family:var(--display);font-size:24px;color:#fff;display:inline-flex;align-items:center;gap:10px;
+  background:var(--tomato);box-shadow:0 6px 0 var(--tomato-d);text-shadow:0 2px 0 rgba(0,0,0,.18);white-space:nowrap}
+.big:active{transform:translateY(4px);box-shadow:0 2px 0 var(--tomato-d)}
+.big.green{background:var(--basil);box-shadow:0 6px 0 var(--basil-d)}
+.big.navy{background:var(--navy);box-shadow:0 6px 0 #0f1638}
+.big.gold{background:var(--gold);box-shadow:0 6px 0 var(--gold-d);color:var(--ink);text-shadow:none}
+.big svg{width:34px;height:34px}
+.big.glow{animation:glow 1s ease-in-out infinite alternate}
+@keyframes glow{to{transform:scale(1.06)}}
+.tool{width:96px;height:96px;border-radius:50%;background:var(--cream);border:4px solid var(--wood-d);box-shadow:0 5px 0 var(--wood-d);display:grid;place-items:center}
+.tool svg{width:70px;height:70px}
+.tool:active{transform:translateY(4px);box-shadow:0 1px 0 var(--wood-d)}
+.tray-note{font-weight:900;color:var(--navy);font-size:17px}
+
+@media (min-aspect-ratio:5/4) and (min-width:700px){
+  #kitchen{grid-template-columns:minmax(0,1fr) minmax(300px,390px);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"stage top" "stage tray";column-gap:16px}
+  .k-top{grid-area:top;flex-direction:column}
+  .k-stage{grid-area:stage}
+  .k-tray{grid-area:tray;align-content:flex-start;overflow-y:auto}
+  .bins{flex-wrap:wrap;overflow:visible;justify-content:center}
+  .cust{align-self:flex-start}
+}
+
+/* overlays */
+.overlay{position:absolute;inset:0;z-index:20;display:grid;place-items:center;background:rgba(29,39,86,.55);padding:16px}
+.card{background:var(--cream);border:5px solid var(--navy);border-radius:28px;padding:24px;max-width:440px;width:100%;text-align:center;display:grid;gap:12px;justify-items:center;
+  box-shadow:0 10px 0 var(--navy);animation:cardin .45s cubic-bezier(.3,1.5,.6,1)}
+@keyframes cardin{from{transform:scale(.6);opacity:0}}
+.card h2{font-size:34px;color:var(--navy)}
+.card .it{color:var(--tomato);font-style:italic;font-weight:900;font-size:20px}
+.card .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.card .stars-row svg{width:40px;height:40px}
+.trophy{width:120px;height:120px}
+.toast{position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:30;background:var(--gold);border:4px solid var(--gold-d);border-radius:20px;padding:10px 18px;font-weight:900;display:flex;gap:10px;align-items:center;
+  box-shadow:0 6px 0 var(--gold-d);animation:cardin .4s cubic-bezier(.3,1.5,.6,1);max-width:calc(100% - 32px)}
+.toast svg{width:42px;height:42px;flex:none}
+
+/* album + grown-ups */
+.page{overflow-y:auto;padding-bottom:24px}
+.page-inner{max-width:760px;margin:0 auto;display:grid;gap:16px;padding-top:6px}
+.page h2{font-size:34px;color:var(--navy)}
+.album-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
+.album-grid figure{margin:0;background:var(--cream);border:3px solid var(--wood-d);border-radius:20px;padding:8px;display:grid;gap:4px;justify-items:center}
+.album-grid svg{width:100%;height:auto;aspect-ratio:1}
+.album-grid figcaption{font-size:13px;color:var(--ink-soft);font-weight:800}
+.empty{background:var(--cream);border:3px dashed var(--wood-d);border-radius:20px;padding:22px;text-align:center;font-weight:800;color:var(--ink-soft)}
+.gu{background:var(--cream);border:4px solid var(--navy);border-radius:24px;padding:20px 22px;display:grid;gap:12px;line-height:1.5;max-width:62ch}
+.gu h3{font-size:22px;color:var(--navy)}
+.gu a{color:var(--tomato-d);font-weight:900}
+.gu .links{display:flex;flex-wrap:wrap;gap:10px}
+.gu .links a{background:var(--navy);color:var(--cream);text-decoration:none;border-radius:999px;padding:10px 16px}
+.gu .addr{user-select:text;-webkit-user-select:text;font-weight:800}
+.danger{color:var(--tomato-d);font-weight:900;text-decoration:underline;justify-self:start;min-height:44px}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+
+<div id="app">
+  <header class="bar">
+    <button class="icon-btn" id="homeBtn" type="button" aria-label="Home" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>
+    </button>
+    <div class="hud" id="hud"></div>
+    <button class="icon-btn" id="muteBtn" type="button" aria-label="Sound on or off"></button>
+  </header>
+
+  <main id="screens" style="min-height:0">
+    <section id="title" class="screen">
+      <div class="awning" aria-hidden="true"></div>
+      <div class="title-wrap">
+        <div class="title-hero">
+          <div class="host-big" id="hostBig"></div>
+          <div class="sign">
+            <p class="sign-small">Pizzaiolo by Brothers presents</p>
+            <h1>Little Pizzaiolo</h1>
+            <p class="sign-sub">Stretch, sauce, top and bake. Ciao, chef!</p>
+          </div>
+        </div>
+        <div class="modes">
+          <button class="mode" type="button" data-mode="orders"><span class="mode-ic" id="icOrders"></span><span class="mode-name">Pizza Orders</span><span class="mode-it">Gli ordini</span><span class="mode-desc">Make what each customer asks for. 5 customers a day.</span></button>
+          <button class="mode" type="button" data-mode="free"><span class="mode-ic" id="icFree"></span><span class="mode-name">Make Your Own</span><span class="mode-it">Fantasia</span><span class="mode-desc">Any toppings you like. Save it to your pizza album.</span></button>
+          <button class="mode" type="button" data-mode="rush"><span class="mode-ic" id="icRush"></span><span class="mode-name">Pizza Rush</span><span class="mode-it">Presto, presto!</span><span class="mode-desc">How many pizzas can you serve before the oven clock rings?</span></button>
+        </div>
+        <div class="title-foot">
+          <span class="pill" id="tStars"></span>
+          <span class="pill" id="tBest"></span>
+          <button class="chip-btn" type="button" id="albumBtn">My pizzas</button>
+          <button class="link-btn" type="button" id="grownBtn">For grown-ups</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="kitchen" class="screen" hidden>
+      <div class="k-top">
+        <div class="host" id="hostBox"><div class="host-face" id="hostFace"></div><p class="host-text" id="hostText"></p></div>
+        <div class="cust" id="cust" hidden>
+          <div class="cust-who"><div class="cust-face" id="custFace"></div><div class="cust-name" id="custName"></div></div>
+          <button class="order" id="order" type="button" aria-label="Hear the order again"></button>
+        </div>
+      </div>
+      <div class="k-stage" id="stage">
+        <svg id="pizza" viewBox="-10 -10 420 420" aria-label="Your pizza. Tap to add things.">
+          <defs>
+            <radialGradient id="gDough"><stop offset=".78" stop-color="#f7e3ba"/><stop offset="1" stop-color="#e8c58a"/></radialGradient>
+            <radialGradient id="gCrust"><stop offset=".8" stop-color="#f1d197"/><stop offset=".94" stop-color="#e5b56f"/><stop offset="1" stop-color="#d49b52"/></radialGradient>
+            <radialGradient id="gBaked"><stop offset=".82" stop-color="#e8b064"/><stop offset=".93" stop-color="#c47f33"/><stop offset="1" stop-color="#93531f"/></radialGradient>
+            <clipPath id="clipIn"><circle cx="200" cy="200" r="157"/></clipPath>
+          </defs>
+          <circle cx="200" cy="200" r="199" fill="#c88a50" stroke="#9c6331" stroke-width="5"/>
+          <circle cx="200" cy="200" r="170" fill="none" stroke="#b67a42" stroke-width="2" opacity=".6"/>
+          <circle cx="200" cy="200" r="120" fill="none" stroke="#b67a42" stroke-width="2" opacity=".45"/>
+          <ellipse cx="206" cy="212" rx="176" ry="172" fill="rgba(70,35,10,.25)" id="pizzaShadow"/>
+          <g id="pizzaArt">
+            <g id="base" style="transform-box:view-box;transform-origin:200px 200px">
+              <circle id="crust" cx="200" cy="200" r="180" fill="url(#gDough)"/>
+              <g id="crustSpots"></g>
+              <circle id="doughTop" cx="200" cy="200" r="158" fill="#f8e8c6"/>
+              <g id="sauceG" clip-path="url(#clipIn)"></g>
+              <g id="cheeseG" clip-path="url(#clipIn)"></g>
+              <g id="meltG"></g>
+              <g id="topsG"></g>
+              <g id="slicesG"></g>
+            </g>
+          </g>
+          <circle id="hint" class="hint-ring" cx="200" cy="200" r="90"/>
+        </svg>
+        <div id="oven" hidden>
+          <svg viewBox="0 0 400 400" aria-hidden="true">
+            <defs>
+              <pattern id="bricks" width="44" height="22" patternUnits="userSpaceOnUse">
+                <rect width="44" height="22" fill="#b4532f"/>
+                <path d="M0 1H44M0 12H44M22 1V12M1 12V22M43 12V22" stroke="#86331a" stroke-width="2.5"/>
+              </pattern>
+              <radialGradient id="gGlow" cx="50%" cy="80%"><stop offset="0" stop-color="#ffb347"/><stop offset=".55" stop-color="#b8461c"/><stop offset="1" stop-color="#2a120a"/></radialGradient>
+            </defs>
+            <rect x="170" y="0" width="60" height="50" fill="url(#bricks)" stroke="#6d2812" stroke-width="4"/>
+            <path d="M30 400V210Q30 46 200 46Q370 46 370 210V400Z" fill="url(#bricks)" stroke="#6d2812" stroke-width="5"/>
+            <rect x="120" y="70" width="160" height="44" rx="12" fill="#1d2756" stroke="#fff8ea" stroke-width="4"/>
+            <text x="200" y="101" text-anchor="middle" font-family="Lilita One, Arial Rounded MT Bold, sans-serif" font-size="24" fill="#f3b52f">PIZZAIOLO</text>
+            <circle cx="320" cy="150" r="34" fill="#fff8ea" stroke="#1d2756" stroke-width="5"/>
+            <text id="ovenCount" class="oven-count" x="320" y="164" text-anchor="middle"></text>
+            <path d="M100 340V262Q100 160 200 160Q300 160 300 262V340Z" fill="url(#gGlow)"/>
+            <g transform="translate(200 300)">
+              <path class="flame" d="M-80 30C-95 0-70-20-72-55C-55-30-40-35-45-70C-20-40-30-10-20 30Z" fill="#ff8a1f"/>
+              <path class="flame f2" d="M20 30C5-5 40-25 30-70C55-40 60-20 52-55C80-20 90 10 80 30Z" fill="#ff8a1f"/>
+              <path class="flame f3" d="M-40 30C-50 5-20-15-15-50C0-25 20-30 10-60C40-25 45 5 35 30Z" fill="#ffd23f"/>
+            </g>
+            <g id="ovenPizza" style="transform-box:view-box;transform-origin:200px 200px"><use href="#pizzaArt"/></g>
+            <path d="M100 340V262Q100 160 200 160Q300 160 300 262V340" fill="none" stroke="#6d2812" stroke-width="16"/>
+            <rect x="60" y="338" width="280" height="22" rx="6" fill="#8f8378" stroke="#5d544c" stroke-width="3"/>
+          </svg>
+        </div>
+      </div>
+      <div class="k-tray" id="tray"></div>
+    </section>
+
+    <section id="album" class="screen page" hidden>
+      <div class="page-inner">
+        <h2>My pizzas</h2>
+        <p>Pizzas you saved in <b>Make Your Own</b>. They stay on this device.</p>
+        <div id="albumGrid" class="album-grid"></div>
+      </div>
+    </section>
+
+    <section id="grown" class="screen page" hidden>
+      <div class="page-inner">
+        <h2>For grown-ups</h2>
+        <div class="gu">
+          <p>Little Pizzaiolo is a free pizza game from <b>Pizzaiolo by Brothers</b>, the family pizzeria in Midland Park, NJ. It's made for kids about 4 to 8: no ads, no sign-up, nothing to buy. Kids don't need to read. Every step is spoken aloud, and every pizza is a good pizza.</p>
+          <p>Stars, stickers and the pizza album are saved on this device only.</p>
+          <h3>Hungry after all that?</h3>
+          <div class="links">
+            <a href="https://pizzaiolobrothers.com/pdf/menu_24.pdf" target="_blank" rel="noopener">See our menu</a>
+            <a href="https://weborder3.microworks.com/brothers/" target="_blank" rel="noopener">Order online</a>
+            <a href="https://pizzaiolobrothers.com/" target="_blank" rel="noopener">Our website</a>
+          </div>
+          <p class="addr">Pizzaiolo by Brothers · 85 Godwin Avenue, Midland Park, NJ 07432 · <a href="tel:+12014444944">201.444.4944</a></p>
+          <button class="danger" type="button" id="resetBtn">Reset stars and album</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- saved progress (this device only) ---------- */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('lp_' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('lp_' + k, JSON.stringify(v)); } catch (e) {} }
+};
+const save = { stars: store.get('stars', 0), best: store.get('best', 0), album: store.get('album', []), muted: store.get('muted', false) };
+
+/* ---------- toppings ---------- */
+const STAR_PATH = 'M0-20L5.9-6.5 20.5-6.2 9.2 3.2 13.1 17.4 0 9.3-13.1 17.4-9.2 3.2-20.5-6.2-5.9-6.5Z';
+const TOPS = [
+  { id: 'pepperoni', it: 'Salamino', en: 'Pepperoni', one: 'pepperoni', many: 'pepperoni',
+    svg: () => `<circle r="17" fill="#b8322a"/><circle r="15.5" fill="none" stroke="#8e2119" stroke-width="2.5"/><circle cx="-6" cy="-4" r="2.6" fill="#e2735f"/><circle cx="5" cy="6" r="2.2" fill="#e2735f"/><circle cx="6" cy="-6" r="2" fill="#7d1c15"/><circle cx="-4" cy="7" r="1.8" fill="#7d1c15"/>` },
+  { id: 'mushroom', it: 'Funghi', en: 'Mushrooms', one: 'mushroom', many: 'mushrooms',
+    svg: () => `<path d="M-17 2C-17-16 17-16 17 2Z" fill="#c59c72"/><path d="M-12-3C-10-11 10-11 12-3" fill="none" stroke="#dcbd98" stroke-width="2.5"/><rect x="-6" y="0" width="12" height="13" rx="4" fill="#efdfc6"/><path d="M-17 2H17" stroke="#93704f" stroke-width="2.5"/>` },
+  { id: 'olive', it: 'Olive', en: 'Olives', one: 'olive', many: 'olives',
+    svg: () => `<circle r="8.5" fill="none" stroke="#23211f" stroke-width="6.5"/><path d="M-6-5A8 8 0 0 1 3-8" fill="none" stroke="#6a6662" stroke-width="2"/>` },
+  { id: 'basil', it: 'Basilico', en: 'Basil', one: 'basil leaf', many: 'basil leaves',
+    svg: () => `<path d="M0-19C15-10 15 10 0 19C-15 10-15-10 0-19Z" fill="#3a8a3a"/><path d="M0-16V16M0-5L7-10M0 3L7-2M0-5L-7-10M0 3L-7-2" stroke="#25632a" stroke-width="1.6" fill="none"/>` },
+  { id: 'pepper', it: 'Peperoni', en: 'Peppers', one: 'pepper', many: 'peppers',
+    svg: () => `<path d="M-15 7A16 16 0 1 1 15 7" fill="none" stroke="#3f9b3b" stroke-width="7" stroke-linecap="round"/><path d="M-11 5A12 12 0 0 1 4-11" fill="none" stroke="#7cc46d" stroke-width="2" stroke-linecap="round"/>` },
+  { id: 'sausage', it: 'Salsiccia', en: 'Sausage', one: 'sausage', many: 'sausages',
+    svg: () => `<circle cx="-6" cy="-3" r="9" fill="#8b4a2b"/><circle cx="6" cy="-4" r="8" fill="#9a5532"/><circle cx="0" cy="7" r="8.5" fill="#83432a"/><circle cx="-4" cy="-5" r="1.6" fill="#d9a37a"/><circle cx="5" cy="6" r="1.4" fill="#d9a37a"/><circle cx="7" cy="-6" r="1.3" fill="#5e2e19"/>` },
+  { id: 'onion', it: 'Cipolla', en: 'Onions', one: 'onion', many: 'onions',
+    svg: () => `<path d="M-16 6A17 17 0 0 1 16 6" fill="none" stroke="#a974c0" stroke-width="5" stroke-linecap="round"/><path d="M-9 6A10 10 0 0 1 9 6" fill="none" stroke="#d9b8e6" stroke-width="4" stroke-linecap="round"/>` },
+  { id: 'tomato', it: 'Pomodoro', en: 'Tomatoes', one: 'tomato', many: 'tomatoes',
+    svg: () => `<circle r="16" fill="#df4632"/><circle r="11.5" fill="#f07a5f"/><path d="M0-11V11M-10-5L10 5M-10 5L10-5" stroke="#df4632" stroke-width="2.5"/><ellipse cx="-5" cy="-1" rx="2" ry="3" fill="#f8d39b"/><ellipse cx="5" cy="1" rx="2" ry="3" fill="#f8d39b"/><ellipse cx="0" cy="6" rx="3" ry="2" fill="#f8d39b"/>` },
+  { id: 'mozz', it: 'Fior di latte', en: 'Mozzarella', one: 'mozzarella', many: 'mozzarellas',
+    svg: () => `<ellipse rx="18" ry="15.5" fill="#fffdf6" stroke="#ead9b8" stroke-width="2.5"/><ellipse cx="-5" cy="-5" rx="6" ry="3.5" fill="#fff" opacity=".9"/>` },
+  { id: 'star', it: 'Stella', en: 'Gold star', one: 'gold star', many: 'gold stars', sticker: 10,
+    svg: () => `<path d="${STAR_PATH}" fill="#f3b52f" stroke="#c98a10" stroke-width="2.5" stroke-linejoin="round"/>` },
+  { id: 'heart', it: 'Cuore', en: 'Heart', one: 'heart', many: 'hearts', sticker: 25,
+    svg: () => `<path d="M0 17C-22 2-22-14-10-17C-4-18 0-12 0-9C0-12 4-18 10-17C22-14 22 2 0 17Z" fill="#c8322a" stroke="#8e2119" stroke-width="2.5"/><circle cx="-8" cy="-6" r="2.4" fill="#e2735f"/><circle cx="7" cy="-3" r="2" fill="#7d1c15"/>` },
+];
+const TOP = Object.fromEntries(TOPS.map(t => [t.id, t]));
+const FOOD = TOPS.filter(t => !t.sticker);
+const unlocked = t => !t.sticker || save.stars >= t.sticker;
+const icon = (id, cls = '') => `<svg class="${cls}" viewBox="-24 -24 48 48" aria-hidden="true">${TOP[id].svg()}</svg>`;
+const starSVG = (on = true) => `<svg viewBox="-24 -24 48 48" aria-hidden="true"><path d="${STAR_PATH}" transform="scale(1.1)" fill="${on ? '#f3b52f' : '#e9dcc3'}" stroke="${on ? '#c98a10' : '#cdbb98'}" stroke-width="2.5" stroke-linejoin="round"/></svg>`;
+const tickSVG = `<svg class="tick" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#3b8a3e"/><path d="M6.5 12.5 10.5 16 17.5 8.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+/* ---------- characters ---------- */
+function chefSVG(happy) {
+  return `<svg viewBox="0 0 100 100" aria-hidden="true">
+    <path d="M14 100Q14 72 50 72Q86 72 86 100Z" fill="#fff"/><path d="M38 72L50 86 62 72Z" fill="#1d2756"/><path d="M42 75L50 84 58 75" fill="#d23b2a"/>
+    <circle cx="50" cy="50" r="24" fill="#f1c39b"/><circle cx="27" cy="52" r="5" fill="#e9b088"/><circle cx="73" cy="52" r="5" fill="#e9b088"/>
+    <path d="M26 34Q26 22 50 22Q74 22 74 34V38H26Z" fill="#fff" stroke="#e5ddd0" stroke-width="2"/>
+    <circle cx="34" cy="18" r="11" fill="#fff"/><circle cx="50" cy="12" r="13" fill="#fff"/><circle cx="66" cy="18" r="11" fill="#fff"/>
+    <rect x="26" y="30" width="48" height="9" rx="3" fill="#fff" stroke="#e5ddd0" stroke-width="2"/>
+    <path d="M37 45q4-3 8 0M55 45q4-3 8 0" stroke="#2b1d12" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <circle cx="41" cy="50" r="2.8" fill="#2b1d12"/><circle cx="59" cy="50" r="2.8" fill="#2b1d12"/>
+    <ellipse cx="50" cy="56" rx="4" ry="3.2" fill="#e09d76"/>
+    ${happy ? '<path d="M41 64Q50 74 59 64Z" fill="#7a2a1f"/>' : '<path d="M42 65Q50 70 58 65" stroke="#7a2a1f" stroke-width="2.5" fill="none" stroke-linecap="round"/>'}
+    <path d="M50 60C44 57 34 58 31 64C37 62 42 64 50 62C58 64 63 62 69 64C66 58 56 57 50 60Z" fill="#3a2414"/>
+    <circle cx="36" cy="60" r="3" fill="#f2a08a" opacity=".5"/><circle cx="64" cy="60" r="3" fill="#f2a08a" opacity=".5"/>
+  </svg>`;
+}
+const SKINS = ['#f6d3b3', '#e8b48d', '#c98d61', '#9a6340', '#6b432a'];
+const HAIRS = ['#2b1d12', '#5a3518', '#a8642c', '#e0b456', '#1b1b1b'];
+const SHIRTS = ['#3b8a3e', '#34428a', '#d23b2a', '#f3b52f', '#7c4fa0', '#1f8a9a'];
+const PEOPLE = [
+  { name: 'Luca', hair: 'short' }, { name: 'Sofia', hair: 'long' }, { name: 'Nonna Rosa', hair: 'bun', grey: true, glasses: true },
+  { name: 'Marco', hair: 'cap' }, { name: 'Giulia', hair: 'curly' }, { name: 'Tony', hair: 'short', glasses: true },
+  { name: 'Mia', hair: 'bun' }, { name: 'Leo', hair: 'curly' }, { name: 'Zia Anna', hair: 'long', glasses: true },
+  { name: 'Coach Joe', hair: 'cap' }, { name: 'Ella', hair: 'long' }, { name: 'Nonno Sal', hair: 'bald', grey: true, glasses: true },
+];
+function makeCustomer(exclude) {
+  const p = pick(PEOPLE.filter(x => x.name !== exclude));
+  return { ...p, skin: pick(SKINS), hairC: p.grey ? '#cfcac2' : pick(HAIRS), shirt: pick(SHIRTS) };
+}
+function customerSVG(c, happy) {
+  const h = c.hairC;
+  const back = c.hair === 'long' ? `<path d="M24 42Q24 16 50 16Q76 16 76 42V74H24Z" fill="${h}"/>` : '';
+  const front = {
+    short: `<path d="M26 44Q24 18 50 18Q76 18 74 44Q68 30 50 30Q34 30 26 44Z" fill="${h}"/>`,
+    long: `<path d="M26 44Q24 18 50 18Q76 18 74 44Q66 28 46 30Q34 32 26 44Z" fill="${h}"/>`,
+    bun: `<circle cx="50" cy="15" r="10" fill="${h}"/><path d="M26 44Q24 20 50 20Q76 20 74 44Q66 30 50 30Q34 30 26 44Z" fill="${h}"/>`,
+    cap: `<path d="M25 38Q25 16 50 16Q75 16 75 38Z" fill="#1d2756"/><path d="M50 34H86Q86 40 76 40H50Z" fill="#1d2756"/><circle cx="50" cy="24" r="4" fill="#f3b52f"/>`,
+    curly: [26, 34, 42, 50, 58, 66, 74].map((x, i) => `<circle cx="${x}" cy="${i % 2 ? 22 : 27}" r="9" fill="${h}"/>`).join('') + `<circle cx="25" cy="37" r="7" fill="${h}"/><circle cx="75" cy="37" r="7" fill="${h}"/>`,
+    bald: `<path d="M26 46Q24 36 30 34M74 46Q76 36 70 34" stroke="${h}" stroke-width="6" fill="none" stroke-linecap="round"/>`,
+  }[c.hair];
+  const glasses = c.glasses ? `<g stroke="#2b1d12" fill="rgba(255,255,255,.25)" stroke-width="2"><circle cx="41" cy="46" r="7"/><circle cx="59" cy="46" r="7"/></g><path d="M48 46h4" stroke="#2b1d12" stroke-width="2"/>` : '';
+  const mouth = happy ? `<path d="M40 55Q50 68 60 55Z" fill="#7a2a1f"/><path d="M44 57Q50 60 56 57" stroke="#fff" stroke-width="2" fill="none"/>` : `<path d="M43 57Q50 62 57 57" stroke="#7a2a1f" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  return `<svg viewBox="0 0 100 100" aria-hidden="true">${back}
+    <path d="M14 100Q14 72 50 72Q86 72 86 100Z" fill="${c.shirt}"/><rect x="44" y="64" width="12" height="12" fill="${c.skin}"/>
+    <circle cx="50" cy="46" r="24" fill="${c.skin}"/>${front}
+    <circle cx="41" cy="46" r="3" fill="#2b1d12"/><circle cx="59" cy="46" r="3" fill="#2b1d12"/>${glasses}
+    <circle cx="35" cy="55" r="4" fill="#f2a08a" opacity="${happy ? .7 : .35}"/><circle cx="65" cy="55" r="4" fill="#f2a08a" opacity="${happy ? .7 : .35}"/>${mouth}
+    ${happy ? '<path d="M82 18C78 13 72 16 74 21L80 27 86 21C88 16 82 13 82 18Z" fill="#d23b2a"/>' : ''}
+  </svg>`;
+}
+const miniPizzaSVG = `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="#e5b56f"/><circle cx="50" cy="50" r="38" fill="#c4321f"/><circle cx="50" cy="50" r="34" fill="#fbe2a4"/>
+  <g transform="translate(36 38) scale(.45)">${TOP.pepperoni.svg()}</g><g transform="translate(62 44) scale(.45)">${TOP.pepperoni.svg()}</g><g transform="translate(46 64) scale(.45)">${TOP.basil.svg()}</g><g transform="translate(62 64) scale(.4)">${TOP.mushroom.svg()}</g></svg>`;
+const clockSVG = `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="54" r="40" fill="#fff8ea" stroke="#1d2756" stroke-width="7"/><rect x="42" y="4" width="16" height="10" rx="3" fill="#1d2756"/><path d="M50 54V30M50 54L66 64" stroke="#d23b2a" stroke-width="7" stroke-linecap="round"/><circle cx="50" cy="54" r="5" fill="#1d2756"/></svg>`;
+const trophySVG = `<svg class="trophy" viewBox="0 0 100 100" aria-hidden="true"><path d="M28 14H72V40Q72 62 50 62Q28 62 28 40Z" fill="#f3b52f" stroke="#c98a10" stroke-width="3"/><path d="M28 20H14Q12 40 30 44M72 20H86Q88 40 70 44" fill="none" stroke="#c98a10" stroke-width="5"/><rect x="44" y="60" width="12" height="14" fill="#c98a10"/><rect x="30" y="74" width="40" height="12" rx="3" fill="#1d2756"/><path d="${STAR_PATH}" transform="translate(50 36) scale(.6)" fill="#fff8ea"/></svg>`;
+
+/* ---------- sound + voice ---------- */
+const S = {
+  ctx: null,
+  init() {
+    if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  tone(f, dur, { type = 'sine', vol = .18, to = null, delay = 0 } = {}) {
+    if (save.muted || !this.ctx) return;
+    const t = this.ctx.currentTime + delay, o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t); if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g).connect(this.ctx.destination); o.start(t); o.stop(t + dur + .03);
+  },
+  noise(dur, { vol = .15, freq = 1200, q = 1, delay = 0 } = {}) {
+    if (save.muted || !this.ctx) return;
+    const t = this.ctx.currentTime + delay, n = Math.floor(this.ctx.sampleRate * dur);
+    const buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    const src = this.ctx.createBufferSource(), f = this.ctx.createBiquadFilter(), g = this.ctx.createGain();
+    src.buffer = buf; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    src.connect(f).connect(g).connect(this.ctx.destination); src.start(t); src.stop(t + dur + .03);
+  },
+  pop() { this.tone(rand(480, 760), .13, { to: rand(900, 1300), vol: .22 }); },
+  squish() { this.tone(240, .22, { type: 'triangle', to: 110, vol: .3 }); },
+  splat() { this.noise(.14, { freq: rand(450, 700), vol: .3, q: 1.4 }); },
+  sprinkle() { for (let i = 0; i < 6; i++) this.tone(rand(1700, 2600), .05, { vol: .05, delay: i * .035 }); },
+  whoosh() { this.noise(.55, { freq: 800, q: .5, vol: .22 }); },
+  sizzle(d) { this.noise(d, { freq: 4200, q: .35, vol: .07 }); },
+  tick() { this.tone(900, .07, { type: 'square', vol: .05 }); },
+  ding() { this.tone(1046, .55, { type: 'triangle', vol: .2 }); this.tone(1568, .6, { vol: .12, delay: .06 }); },
+  tada() { [523, 659, 784, 1046].forEach((f, i) => this.tone(f, .4, { type: 'triangle', vol: .17, delay: i * .11 })); },
+  nope() { this.tone(330, .15, { type: 'triangle', vol: .12, to: 260 }); },
+};
+let voices = [];
+const hasSpeech = 'speechSynthesis' in window;
+function loadVoices() { try { voices = speechSynthesis.getVoices(); } catch (e) {} }
+if (hasSpeech) { loadVoices(); try { speechSynthesis.onvoiceschanged = loadVoices; } catch (e) {} }
+function voiceFor(lang) {
+  const two = lang.slice(0, 2), m = voices.filter(v => (v.lang || '').toLowerCase().replace('_', '-').startsWith(two));
+  return m.find(v => /google|samantha|alice|federica|luca|natural/i.test(v.name)) || m[0] || null;
+}
+// parts: [[text, 'it'|'en'], ...]
+function say(parts) {
+  if (save.muted || !hasSpeech) return;
+  try {
+    speechSynthesis.cancel();
+    for (const [t, l] of parts) {
+      const u = new SpeechSynthesisUtterance(t);
+      u.lang = l === 'it' ? 'it-IT' : 'en-US';
+      const v = voiceFor(u.lang); if (v) u.voice = v;
+      u.rate = l === 'it' ? .9 : .97; u.pitch = 1.08;
+      speechSynthesis.speak(u);
+    }
+  } catch (e) {}
+}
+
+/* ---------- host lines ---------- */
+let lastLine = null;
+function host(parts, happy = false) {
+  lastLine = parts;
+  $('#hostText').innerHTML = parts.map(([t, l]) => l === 'it' ? `<b>${t}</b>` : t).join(' ');
+  $('#hostFace').innerHTML = chefSVG(happy);
+  say(parts);
+}
+
+/* ---------- game state ---------- */
+const G = { mode: null, run: 0, idx: 0, dayStars: 0, served: 0, order: null, cust: null, rushEnd: 0, timer: null, ended: false };
+const P = { step: 'dough', taps: 0, splats: [], sauced: false, handfuls: 0, tops: [], sel: null, baked: false, busy: false };
+const svg = $('#pizza'), base = $('#base');
+const gSauce = $('#sauceG'), gCheese = $('#cheeseG'), gMelt = $('#meltG'), gTops = $('#topsG'), gSlices = $('#slicesG'), gSpots = $('#crustSpots');
+const NSV = 'http://www.w3.org/2000/svg';
+function addSVG(parent, markup) {
+  const g = document.createElementNS(NSV, 'g'); g.innerHTML = markup; parent.appendChild(g);
+  g.querySelectorAll('.pop').forEach(el => el.addEventListener('animationend', () => el.classList.remove('pop'), { once: true }));
+  return g;
+}
+const DOUGH_SCALES = [.42, .62, .82, 1];
+function setScale(s) { base.style.transform = `scale(${s})`; }
+
+function resetPizza() {
+  [gSauce, gCheese, gMelt, gTops, gSlices, gSpots].forEach(g => g.innerHTML = '');
+  Object.assign(P, { step: 'dough', taps: 0, splats: [], sauced: false, handfuls: 0, tops: [], sel: P.sel && unlocked(TOP[P.sel]) ? P.sel : null, baked: false, busy: false });
+  $('#crust').setAttribute('fill', 'url(#gDough)');
+  $('#doughTop').setAttribute('fill', '#f8e8c6');
+  gTops.style.filter = '';
+  setScale(DOUGH_SCALES[0]);
+  $('#pizzaShadow').setAttribute('rx', 176 * DOUGH_SCALES[0]); $('#pizzaShadow').setAttribute('ry', 172 * DOUGH_SCALES[0]);
+  $('#stage').querySelectorAll('.starpop').forEach(e => e.remove());
+}
+
+function toSvgPoint(e) {
+  const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+  return { x: p.x, y: p.y };
+}
+function clampIn(p, r) {
+  const dx = p.x - 200, dy = p.y - 200, d = Math.hypot(dx, dy);
+  return d <= r ? p : { x: 200 + dx / d * r, y: 200 + dy / d * r };
+}
+function randomIn(r) { const a = rand(0, Math.PI * 2), d = Math.sqrt(Math.random()) * r; return { x: 200 + Math.cos(a) * d, y: 200 + Math.sin(a) * d }; }
+
+/* step 1: dough */
+function stretch() {
+  if (P.step !== 'dough' || P.busy) return;
+  const from = DOUGH_SCALES[P.taps], to = DOUGH_SCALES[P.taps + 1];
+  P.taps++;
+  S.squish();
+  base.animate([{ transform: `scale(${from})` }, { transform: `scale(${to * 1.1},${to * .86})` }, { transform: `scale(${to * .96},${to * 1.04})` }, { transform: `scale(${to})` }], { duration: 420, easing: 'ease-out' });
+  setScale(to);
+  $('#pizzaShadow').setAttribute('rx', 176 * to); $('#pizzaShadow').setAttribute('ry', 172 * to);
+  updateHint();
+  if (P.taps >= 3) { P.busy = true; setTimeout(() => { P.busy = false; setStep('sauce'); }, 500); }
+  else say([[['Stretch!', 'Again!', 'One more!'][P.taps], 'en']]);
+}
+
+/* step 2: sauce */
+const SAMPLES = [];
+for (const [r, n] of [[0, 1], [45, 8], [90, 12], [128, 16], [150, 20]]) for (let i = 0; i < n; i++) SAMPLES.push({ x: 200 + Math.cos(i / n * 6.283) * r, y: 200 + Math.sin(i / n * 6.283) * r });
+function coverage() {
+  let c = 0;
+  for (const s of SAMPLES) if (P.splats.some(p => Math.hypot(p.x - s.x, p.y - s.y) < p.r - 6)) c++;
+  return c / SAMPLES.length;
+}
+function splat(p, quiet) {
+  if (P.sauced) return;
+  p = clampIn(p, 150);
+  const r = rand(42, 58);
+  P.splats.push({ x: p.x, y: p.y, r });
+  addSVG(gSauce, `<g transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})"><g class="pop"><circle r="${r.toFixed(1)}" fill="#c4321f"/><circle cx="${rand(-12, 12).toFixed(1)}" cy="${rand(-12, 12).toFixed(1)}" r="${(r * .55).toFixed(1)}" fill="#d9472f" opacity=".6"/></g></g>`);
+  if (!quiet) S.splat();
+  if (coverage() >= .86) finishSauce();
+}
+function finishSauce() {
+  if (P.sauced) return;
+  P.sauced = true;
+  const full = document.createElementNS(NSV, 'circle');
+  full.setAttribute('cx', 200); full.setAttribute('cy', 200); full.setAttribute('r', 158); full.setAttribute('fill', '#c4321f');
+  gSauce.insertBefore(full, gSauce.firstChild);
+  full.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
+  S.ding();
+  const tok = G.run;
+  setTimeout(() => { if (tok === G.run) setStep('cheese'); }, 700);
+}
+async function autoSauce() {
+  if (P.step !== 'sauce' || P.sauced || P.busy) return;
+  P.busy = true; const tok = G.run;
+  const pts = [{ x: 200, y: 200 }];
+  for (let i = 0; i < 6; i++) pts.push({ x: 200 + Math.cos(i / 6 * 6.283) * 75, y: 200 + Math.sin(i / 6 * 6.283) * 75 });
+  for (let i = 0; i < 11; i++) pts.push({ x: 200 + Math.cos(i / 11 * 6.283 + .3) * 128, y: 200 + Math.sin(i / 11 * 6.283 + .3) * 128 });
+  for (const p of pts) { if (tok !== G.run || P.sauced) break; splat(p, false); await wait(70); }
+  if (tok === G.run) { finishSauce(); P.busy = false; }
+}
+
+/* step 3: cheese */
+function handful(p) {
+  if (P.step !== 'cheese' || P.handfuls >= 9) return;
+  const c = p ? clampIn(p, 120) : randomIn(110);
+  let m = '';
+  for (let i = 0; i < 18; i++) {
+    const q = clampIn({ x: c.x + rand(-58, 58), y: c.y + rand(-58, 58) }, 152);
+    m += `<g transform="translate(${q.x.toFixed(1)} ${q.y.toFixed(1)}) rotate(${rand(0, 180).toFixed(0)})"><rect class="pop" style="animation-delay:${(i * 12)}ms" x="-10" y="-3" width="20" height="6" rx="3" fill="#fff5d2" stroke="#ecd48a" stroke-width="1.2"/></g>`;
+  }
+  addSVG(gCheese, m);
+  P.handfuls++;
+  S.sprinkle();
+  if (P.handfuls === 3) { renderTray(); say([['Bellissimo!', 'it'], ['Add more, or tap the green arrow.', 'en']]); }
+}
+
+/* step 4: toppings */
+function chooseBin(id) {
+  const t = TOP[id];
+  if (!unlocked(t)) { S.nope(); say([[`Earn ${t.sticker} stars to unlock the ${t.en.toLowerCase()}!`, 'en']]); return; }
+  P.sel = id;
+  document.querySelectorAll('.bin').forEach(b => b.classList.toggle('sel', b.dataset.id === id));
+  say([[t.it, 'it'], [t.en, 'en']]);
+  placeTop(randomIn(135));
+}
+function placeTop(p) {
+  if (P.step !== 'toppings' || !P.sel || P.tops.length >= 90) return;
+  p = clampIn(p, 146);
+  const rot = rand(0, 360);
+  P.tops.push({ id: P.sel, x: p.x, y: p.y });
+  addSVG(gTops, `<g transform="translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${rot.toFixed(0)})"><g class="pop">${TOP[P.sel].svg()}</g></g>`);
+  S.pop();
+  updateOrderTicks();
+}
+function counts() { const c = {}; P.tops.forEach(t => c[t.id] = (c[t.id] || 0) + 1); return c; }
+function updateOrderTicks() {
+  if (!G.order) return;
+  const c = counts();
+  document.querySelectorAll('.ord-row').forEach(r => {
+    const o = G.order.find(o => o.id === r.dataset.id);
+    const was = r.classList.contains('done'), now = (c[o.id] || 0) >= o.n;
+    r.classList.toggle('done', now);
+    if (now && !was) S.tone(1320, .12, { type: 'triangle', vol: .12, delay: .08 });
+  });
+}
+
+/* step 5: bake */
+async function bake() {
+  if (P.busy || P.step !== 'toppings') return;
+  P.busy = true; P.step = 'baking';
+  const tok = G.run, rush = G.mode === 'rush';
+  renderTray(); updateHint();
+  host([['Al forno!', 'it'], ['Into the brick oven!', 'en']]);
+  const oven = $('#oven'), mover = $('#ovenPizza'), count = $('#ovenCount');
+  count.textContent = '';
+  oven.hidden = false; await wait(20); oven.classList.add('show');
+  S.whoosh();
+  const front = 'translate(0px,125px) scale(.62)', inside = 'translate(0px,66px) scale(.36)';
+  mover.style.transform = front;
+  await mover.animate([{ transform: front }, { transform: inside }], { duration: rush ? 550 : 900, easing: 'ease-in-out', fill: 'forwards' }).finished;
+  if (tok !== G.run) return;
+  mover.style.transform = inside;
+  const beats = rush ? 2 : 3, beat = rush ? 450 : 750;
+  S.sizzle(beats * beat / 1000);
+  for (let i = beats; i > 0; i--) {
+    count.textContent = i; S.tick();
+    if (i === Math.ceil(beats / 2)) applyBaked();
+    await wait(beat); if (tok !== G.run) return;
+  }
+  count.textContent = '';
+  S.ding();
+  await mover.animate([{ transform: inside }, { transform: front }], { duration: rush ? 450 : 750, easing: 'ease-in-out', fill: 'forwards' }).finished;
+  if (tok !== G.run) return;
+  oven.classList.remove('show'); await wait(320); oven.hidden = true;
+  if (tok !== G.run) return;
+  P.busy = false;
+  served();
+}
+function applyBaked() {
+  if (P.baked) return;
+  P.baked = true;
+  $('#crust').setAttribute('fill', 'url(#gBaked)');
+  let spots = '';
+  for (let i = 0; i < 14; i++) { const a = rand(0, 6.283), r = rand(163, 175); spots += `<ellipse cx="${(200 + Math.cos(a) * r).toFixed(1)}" cy="${(200 + Math.sin(a) * r).toFixed(1)}" rx="${rand(3, 7).toFixed(1)}" ry="${rand(2, 4).toFixed(1)}" transform="rotate(${(a * 57.3 + 90).toFixed(0)} ${(200 + Math.cos(a) * r).toFixed(1)} ${(200 + Math.sin(a) * r).toFixed(1)})" fill="#6e3613" opacity=".45"/>`; }
+  gSpots.innerHTML = spots;
+  if (P.handfuls) {
+    let m = `<circle cx="200" cy="200" r="138" fill="#fbe0a0" opacity=".93"/>`;
+    for (let i = 0; i < 26; i++) { const a = i / 26 * 6.283; m += `<circle cx="${(200 + Math.cos(a) * 140).toFixed(1)}" cy="${(200 + Math.sin(a) * 140).toFixed(1)}" r="${rand(10, 15).toFixed(1)}" fill="#fbe0a0" opacity=".93"/>`; }
+    for (let i = 0; i < 16; i++) { const p = randomIn(130); m += `<ellipse cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" rx="${rand(5, 11).toFixed(1)}" ry="${rand(4, 8).toFixed(1)}" fill="#d9903e" opacity=".5"/>`; }
+    for (let i = 0; i < 12; i++) { const p = randomIn(130); m += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${rand(4, 8).toFixed(1)}" fill="#fff4cf" opacity=".85"/>`; }
+    gMelt.innerHTML = m;
+    gCheese.style.opacity = '.4';
+  }
+  gTops.style.filter = 'saturate(1.12) brightness(.95)';
+}
+
+/* step 6: serve */
+function scoreOrder() {
+  const c = counts(); let met = 0;
+  G.order.forEach(o => { const have = c[o.id] || 0; met += have >= o.n ? 1 : have > 0 ? .5 : 0; });
+  const r = met / G.order.length;
+  return r >= 1 ? 3 : r >= .5 ? 2 : 1;
+}
+function slice() {
+  let m = '';
+  for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI + .2, dx = Math.cos(a) * 178, dy = Math.sin(a) * 178; m += `<line class="slice-line" style="animation-delay:${i * 120}ms" x1="${(200 - dx).toFixed(1)}" y1="${(200 - dy).toFixed(1)}" x2="${(200 + dx).toFixed(1)}" y2="${(200 + dy).toFixed(1)}" pathLength="200"/>`; }
+  gSlices.innerHTML = m;
+}
+function starPop(n) {
+  const d = document.createElement('div'); d.className = 'starpop';
+  d.innerHTML = [0, 1, 2].map(i => starSVG(i < n).replace('<svg ', `<svg style="animation-delay:${i * 180}ms" `)).join('');
+  $('#stage').appendChild(d);
+}
+function confetti() {
+  if (reduceMotion) return;
+  const st = $('#stage'), cols = ['#d23b2a', '#3b8a3e', '#f3b52f', '#fff8ea', '#34428a'];
+  for (let i = 0; i < 40; i++) {
+    const c = document.createElement('span'); c.className = 'conf';
+    c.style.left = rand(0, 100) + '%'; c.style.background = pick(cols);
+    c.style.setProperty('--dx', rand(-80, 80) + 'px'); c.style.setProperty('--rot', rand(-720, 720) + 'deg');
+    c.style.animationDuration = rand(1.4, 2.4) + 's'; c.style.animationDelay = rand(0, .4) + 's';
+    st.appendChild(c); setTimeout(() => c.remove(), 3000);
+  }
+}
+function served() {
+  P.step = 'result'; updateHint();
+  const tok = G.run;
+  if (G.mode === 'orders') {
+    const n = scoreOrder(); G.dayStars += n; addStars(n);
+    $('#custFace').innerHTML = customerSVG(G.cust, true);
+    slice(); starPop(n); confetti(); S.tada();
+    host(n === 3 ? [['Perfetto!', 'it'], ['Exactly what I wanted. Thank you, chef!', 'en']]
+      : n === 2 ? [['Buonissima!', 'it'], ['Almost perfect. Yum!', 'en']]
+      : [['Grazie!', 'it'], ['A surprise pizza. I love surprises!', 'en']], true);
+    renderTray();
+  } else if (G.mode === 'rush') {
+    G.served++; addStars(1); hud();
+    $('#custFace').innerHTML = customerSVG(G.cust, true);
+    S.tada(); starPop(scoreOrder());
+    host([[pick(['Presto!', 'Bravo!', 'Evviva!']), 'it'], ['Next pizza!', 'en']], true);
+    setTimeout(() => { if (tok === G.run && !G.ended) nextCustomer(); }, 1100);
+  } else {
+    addStars(1); slice(); confetti(); S.tada();
+    host([[pick(['Che bella pizza!', 'Mamma mia, che buona!', 'Bellissima!']), 'it'], ['You made that!', 'en']], true);
+    renderTray();
+  }
+}
+
+/* ---------- steps + tray ---------- */
+const STEP_LINES = {
+  dough: [['Impasto!', 'it'], ['Tap the dough to stretch it.', 'en']],
+  sauce: [['Salsa!', 'it'], ['Tap the pizza to spread the tomato sauce.', 'en']],
+  cheese: [['Mozzarella!', 'it'], ['Tap to sprinkle the cheese.', 'en']],
+};
+function setStep(s) {
+  P.step = s;
+  if (s === 'toppings') host(G.mode === 'free' ? [['Condimenti!', 'it'], ['Pick a topping, then tap the pizza. Add anything you like!', 'en']] : [['Condimenti!', 'it'], ['Add the toppings in the order bubble.', 'en']]);
+  else host(STEP_LINES[s]);
+  renderTray(); updateHint();
+}
+function updateHint() {
+  const h = $('#hint'), show = P.step === 'dough' || (P.step === 'sauce' && !P.splats.length) || (P.step === 'cheese' && !P.handfuls);
+  h.style.display = show ? '' : 'none';
+  const s = P.step === 'dough' ? DOUGH_SCALES[P.taps] : 1;
+  h.setAttribute('r', (180 * s + 14).toFixed(0));
+}
+const ARROW = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
+const FLAME = `<svg viewBox="0 0 24 24"><path d="M12 2C13 7 18 8 18 14a6 6 0 0 1-12 0c0-3 2-4 3-7 1 2 1 3 3 4 0-3-1-6 0-9Z" fill="#ffd23f" stroke="#fff" stroke-width="1.5"/></svg>`;
+const PIN = `<svg viewBox="0 0 80 80" aria-hidden="true"><rect x="8" y="33" width="64" height="16" rx="8" fill="#d9a15f" stroke="#8d5427" stroke-width="3" transform="rotate(-25 40 41)"/><rect x="-2" y="37" width="14" height="8" rx="4" fill="#8d5427" transform="rotate(-25 40 41)"/><rect x="68" y="37" width="14" height="8" rx="4" fill="#8d5427" transform="rotate(-25 40 41)"/></svg>`;
+const BOWL = (fill, top) => `<svg viewBox="0 0 80 80" aria-hidden="true"><ellipse cx="40" cy="38" rx="30" ry="9" fill="${top}"/><path d="M10 38Q12 66 40 66Q68 66 70 38Z" fill="#fff8ea" stroke="#1d2756" stroke-width="3"/><path d="M14 46H66" stroke="#34428a" stroke-width="4"/>${fill}</svg>`;
+const SAUCE_BOWL = BOWL('<path d="M50 34 70 10" stroke="#8d5427" stroke-width="5" stroke-linecap="round"/>', '#c4321f');
+const CHEESE_BOWL = BOWL('<g fill="#fff5d2" stroke="#ecd48a" stroke-width="1.5"><rect x="24" y="28" width="12" height="5" rx="2.5" transform="rotate(-20 30 30)"/><rect x="38" y="25" width="12" height="5" rx="2.5" transform="rotate(25 44 28)"/><rect x="48" y="31" width="12" height="5" rx="2.5"/></g>', '#fbe0a0');
+
+function btn(cls, html, fn, label) {
+  const b = document.createElement('button'); b.type = 'button'; b.className = cls; b.innerHTML = html;
+  if (label) b.setAttribute('aria-label', label);
+  b.addEventListener('click', () => { S.init(); fn(); });
+  return b;
+}
+function renderTray() {
+  const tr = $('#tray'); tr.innerHTML = '';
+  const s = P.step;
+  if (s === 'dough') tr.append(btn('tool', PIN, stretch, 'Stretch the dough'));
+  else if (s === 'sauce') tr.append(btn('tool', SAUCE_BOWL, autoSauce, 'Spread the sauce for me'));
+  else if (s === 'cheese') {
+    tr.append(btn('tool', CHEESE_BOWL, () => handful(), 'Sprinkle cheese'));
+    if (P.handfuls >= 3) tr.append(btn('big green glow', `Avanti ${ARROW}`, () => setStep('toppings')));
+  } else if (s === 'toppings') {
+    const bins = document.createElement('div'); bins.className = 'bins';
+    for (const t of TOPS) {
+      const b = btn('bin' + (P.sel === t.id ? ' sel' : '') + (unlocked(t) ? '' : ' locked'), `${icon(t.id)}<span class="it">${t.it}</span><span class="en">${t.en}</span>${unlocked(t) ? '' : `<span class="lock">${t.sticker}★</span>`}`, () => chooseBin(t.id), `${t.en}${unlocked(t) ? '' : ', locked'}`);
+      b.dataset.id = t.id; bins.append(b);
+    }
+    tr.append(bins, btn('big', `${FLAME} Al forno!`, bake));
+  } else if (s === 'result') {
+    if (G.mode === 'orders') tr.append(btn('big green glow', G.idx < 4 ? `Next customer ${ARROW}` : `Finish the day ${ARROW}`, () => { if (G.idx < 4) { G.idx++; nextCustomer(); } else dayDone(); }));
+    else if (G.mode === 'free') {
+      const sv = btn('big gold', 'Save to album', () => { saveToAlbum(); sv.disabled = true; sv.textContent = 'Saved!'; });
+      tr.append(sv, btn('big green', `Make another ${ARROW}`, () => { resetPizza(); setStep('dough'); }));
+    }
+  } else if (s === 'baking') {
+    const n = document.createElement('p'); n.className = 'tray-note'; n.textContent = 'Baking in the brick oven…'; tr.append(n);
+  }
+}
+
+/* pizza input */
+let dragging = false;
+svg.addEventListener('pointerdown', e => {
+  S.init(); e.preventDefault();
+  const p = toSvgPoint(e);
+  if (P.step === 'dough') stretch();
+  else if (P.step === 'sauce' && !P.busy) { dragging = true; try { svg.setPointerCapture(e.pointerId); } catch (_) {} splat(p); }
+  else if (P.step === 'cheese') handful(p);
+  else if (P.step === 'toppings') {
+    if (!P.sel) { const first = FOOD[0].id; if (G.order) chooseBin(G.order[0].id); else chooseBin(first); return; }
+    placeTop(p);
+  }
+});
+svg.addEventListener('pointermove', e => {
+  if (!dragging || P.step !== 'sauce') return;
+  const p = clampIn(toSvgPoint(e), 150), last = P.splats[P.splats.length - 1];
+  if (!last || Math.hypot(p.x - last.x, p.y - last.y) > 34) splat(p);
+});
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => svg.addEventListener(ev, () => dragging = false));
+
+/* ---------- customers + orders ---------- */
+function makeOrder() {
+  const kinds = G.mode === 'rush' ? pick([1, 1, 2]) : [1, 1, 2, 2, 3][G.idx];
+  const maxN = G.mode === 'rush' ? 2 : 3;
+  return shuffle(FOOD).slice(0, kinds).map(t => ({ id: t.id, n: 1 + Math.floor(Math.random() * maxN) }));
+}
+function orderWords() {
+  const list = G.order.map(o => `${o.n} ${o.n === 1 ? TOP[o.id].one : TOP[o.id].many}`);
+  return list.length > 1 ? list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1] : list[0];
+}
+function speakOrder() {
+  if (!G.order) return;
+  say([[pick(['Ciao!', 'Buongiorno!', 'Ciao, chef!']), 'it'], [`Can I have a pizza with ${orderWords()}?`, 'en'], ['Per favore!', 'it']]);
+}
+function nextCustomer() {
+  G.cust = makeCustomer(G.cust && G.cust.name);
+  G.order = makeOrder();
+  const c = $('#cust');
+  c.hidden = false; c.classList.remove('arrive'); void c.offsetWidth; c.classList.add('arrive');
+  $('#custFace').innerHTML = customerSVG(G.cust, false);
+  $('#custName').textContent = G.cust.name;
+  $('#order').innerHTML = G.order.map(o => `<span class="ord-row" data-id="${o.id}">${Array(o.n).fill(icon(o.id)).join('')}${tickSVG}</span>`).join('');
+  $('#order').setAttribute('aria-label', `Order: ${orderWords()}. Tap to hear it again.`);
+  hud(); resetPizza(); setStep('dough');
+  setTimeout(speakOrder, 50);
+  setTimeout(() => { if (P.step === 'dough' && lastLine) say(lastLine.concat()); }, 4200);
+}
+$('#order').addEventListener('click', () => { S.init(); speakOrder(); });
+$('#hostBox').addEventListener('click', () => { S.init(); if (lastLine) say(lastLine); });
+
+/* ---------- modes ---------- */
+function show(id) {
+  ['title', 'kitchen', 'album', 'grown'].forEach(s => $('#' + s).hidden = s !== id);
+  $('#homeBtn').hidden = id === 'title';
+  document.querySelectorAll('.overlay').forEach(o => o.remove());
+}
+function startMode(m) {
+  S.init();
+  G.run++; clearInterval(G.timer);
+  Object.assign(G, { mode: m, idx: 0, dayStars: 0, served: 0, order: null, cust: null, ended: false });
+  show('kitchen');
+  $('#cust').hidden = true; $('#oven').hidden = true; $('#oven').classList.remove('show');
+  if (m === 'free') { hud(); resetPizza(); setStep('dough'); }
+  else {
+    if (m === 'rush') {
+      G.rushEnd = Date.now() + 90000;
+      G.timer = setInterval(() => { hud(); if (Date.now() >= G.rushEnd) rushDone(); }, 250);
+    }
+    nextCustomer();
+  }
+}
+function goHome() {
+  G.run++; clearInterval(G.timer); G.mode = null; G.order = null;
+  try { if (hasSpeech) speechSynthesis.cancel(); } catch (e) {}
+  P.busy = false;
+  show('title'); hud(); titleStats();
+  $('#hostBig').innerHTML = chefSVG(true);
+}
+function overlay(html, buttons) {
+  const o = document.createElement('div'); o.className = 'overlay';
+  o.innerHTML = `<div class="card">${html}<div class="row"></div></div>`;
+  buttons.forEach(b => o.querySelector('.row').append(b));
+  $('#app').append(o);
+}
+function dayDone() {
+  S.tada(); confetti();
+  say([['Bravissimo!', 'it'], [`The day is done. You earned ${G.dayStars} stars!`, 'en']]);
+  overlay(`${trophySVG}<h2>Day done!</h2><p class="it">Bravissimo, chef!</p><p class="stars-row">${starSVG().repeat(Math.min(G.dayStars, 15))}</p><p>You earned <b>${G.dayStars} stars</b> from 5 happy customers.</p>`,
+    [btn('big green', 'Play again', () => startMode('orders')), btn('big navy', 'Home', goHome)]);
+}
+function rushDone() {
+  if (G.ended) return;
+  G.ended = true; G.run++; clearInterval(G.timer); hud();
+  $('#oven').hidden = true; $('#oven').classList.remove('show');
+  const isBest = G.served > save.best;
+  if (isBest) { save.best = G.served; store.set('best', save.best); }
+  S.ding(); setTimeout(() => S.tada(), 300); confetti();
+  say([['Bravissimo!', 'it'], [`You served ${G.served} ${G.served === 1 ? 'pizza' : 'pizzas'}!`, 'en']]);
+  overlay(`${clockSVG.replace('<svg ', '<svg class="trophy" ')}<h2>You served ${G.served} ${G.served === 1 ? 'pizza' : 'pizzas'}!</h2><p class="it">${isBest && G.served ? 'Nuovo record! New best!' : 'Bravissimo!'}</p><p>Best so far: <b>${save.best}</b></p>`,
+    [btn('big green', 'Play again', () => startMode('rush')), btn('big navy', 'Home', goHome)]);
+}
+
+/* ---------- stars, stickers, album ---------- */
+function addStars(n) {
+  const before = save.stars; save.stars += n; store.set('stars', save.stars); hud();
+  const t = TOPS.find(t => t.sticker && before < t.sticker && save.stars >= t.sticker);
+  if (t) {
+    const d = document.createElement('div'); d.className = 'toast';
+    d.innerHTML = `${icon(t.id)}<span>New sticker topping: <b>${t.it}</b>!</span>`;
+    $('#app').append(d); setTimeout(() => d.remove(), 3500);
+    setTimeout(() => say([['Evviva!', 'it'], [`You unlocked the ${t.en.toLowerCase()} topping!`, 'en']]), 1600);
+  }
+}
+function saveToAlbum() {
+  const markup = base.innerHTML.replace(/\sid="[^"]*"/g, '').replace(/\sclass="(pop|slice-line)"/g, '');
+  save.album.unshift({ m: markup, d: Date.now() });
+  save.album = save.album.slice(0, 12);
+  store.set('album', save.album);
+  S.ding(); say([['Salvata!', 'it'], ['Saved to your album.', 'en']]);
+}
+function renderAlbum() {
+  const g = $('#albumGrid');
+  if (!save.album.length) { g.innerHTML = `<div class="empty">No pizzas yet. Make one in <b>Make Your Own</b> and tap <b>Save to album</b>.</div>`; return; }
+  g.innerHTML = save.album.map(a => `<figure><svg viewBox="10 10 380 380" aria-label="Saved pizza">${a.m}</svg><figcaption>${new Date(a.d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</figcaption></figure>`).join('');
+}
+
+/* ---------- HUD ---------- */
+const STAR_PILL = () => `${starSVG()}<span>${save.stars}</span>`;
+function hud() {
+  const h = $('#hud');
+  if (!G.mode) { h.innerHTML = ''; return; }
+  let m = `<span class="pill" aria-label="${save.stars} stars">${STAR_PILL()}</span>`;
+  if (G.mode === 'orders') m = `<span class="pill">Customer ${G.idx + 1} of 5</span>` + m;
+  if (G.mode === 'rush') {
+    const left = Math.max(0, Math.ceil((G.rushEnd - Date.now()) / 1000));
+    m = `<span class="pill clock${left <= 10 ? ' low' : ''}" aria-label="${left} seconds left">${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}</span><span class="pill">Served ${G.served}</span>` + m;
+  }
+  if (G.mode === 'free') m = `<span class="pill">Make your own</span>` + m;
+  h.innerHTML = m;
+}
+function titleStats() {
+  $('#tStars').innerHTML = `${STAR_PILL()}&nbsp;stars`;
+  $('#tBest').textContent = `Rush best: ${save.best}`;
+}
+function muteIcon() {
+  $('#muteBtn').innerHTML = save.muted
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4Z" fill="currentColor"/><path d="m17 9 5 6M22 9l-5 6"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4Z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+  $('#muteBtn').setAttribute('aria-pressed', String(save.muted));
+}
+
+/* ---------- wiring ---------- */
+document.querySelectorAll('.mode').forEach(b => b.addEventListener('click', () => startMode(b.dataset.mode)));
+$('#homeBtn').addEventListener('click', goHome);
+$('#muteBtn').addEventListener('click', () => {
+  save.muted = !save.muted; store.set('muted', save.muted); muteIcon();
+  if (save.muted) { try { if (hasSpeech) speechSynthesis.cancel(); } catch (e) {} } else { S.init(); S.pop(); }
+});
+$('#albumBtn').addEventListener('click', () => { renderAlbum(); show('album'); });
+$('#grownBtn').addEventListener('click', () => show('grown'));
+$('#resetBtn').addEventListener('click', e => {
+  const b = e.currentTarget;
+  if (b.dataset.armed) {
+    Object.assign(save, { stars: 0, best: 0, album: [] });
+    store.set('stars', 0); store.set('best', 0); store.set('album', []);
+    b.textContent = 'Progress reset'; delete b.dataset.armed; titleStats();
+  } else { b.dataset.armed = '1'; b.textContent = 'Tap again to erase stars, stickers and album'; }
+});
+document.addEventListener('pointerdown', () => S.init(), { once: true });
+
+$('#hostBig').innerHTML = chefSVG(true);
+$('#icOrders').innerHTML = customerSVG({ ...PEOPLE[1], skin: SKINS[1], hairC: HAIRS[2], shirt: SHIRTS[0] }, true);
+$('#icFree').innerHTML = miniPizzaSVG;
+$('#icRush').innerHTML = clockSVG;
+muteIcon(); titleStats(); hud();
+})();
+</script>
